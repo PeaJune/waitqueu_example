@@ -15,6 +15,7 @@
 
 wait_queue_head_t mem_test_queue;
 int data_valid = 0;
+#if 0
 typedef struct wait_queue_entry wait_queue_entry_t;
 static int user_defined_callback(wait_queue_entry_t *wait, unsigned mode, int sync, void *key)
 {
@@ -22,6 +23,7 @@ static int user_defined_callback(wait_queue_entry_t *wait, unsigned mode, int sy
 	default_wake_function(wait, mode, sync, key);
 	return 0;
 }
+#endif
 
 
 static int mem_test_open(struct inode *inode, struct file *pfile)
@@ -36,13 +38,13 @@ static int mem_test_release(struct inode *inode, struct file *pfile)
 static ssize_t mem_test_read (struct file *pfile, char __user *buf, size_t count, loff_t *ppos)
 {
 	DECLARE_WAITQUEUE(mem_read_queue, current);	//申请waitqueue_entry项，目的是把当前任务挂入等待队列
-	mem_read_queue.func = user_defined_callback;　　//这句可以省略掉，这是为了验证自定义的wakeup回调函数
+	//mem_read_queue.func = user_defined_callback;　　//这句可以省略掉，这是为了验证自定义的wakeup回调函数
 							//加上这句，可以添加自定义内容，不加这句，即使用默认回调函数
 	//init_waitqueue_func_entry(&mem_read_queue, user_defined_callback);
 	if(data_valid == 0)
 	{
 		//EXCLUESIVE标志：是否独占唤釅信号，如果设置为EXCLUESIVE,那么一次唤醒一个任务，否则唤醒所有任务
-		add_wait_queue_exclusive(&mem_test_queue, &mem_read_queue);　
+		add_wait_queue_exclusive(&mem_test_queue, &mem_read_queue);//　
 										
 		//add_wait_queue(&mem_test_queue, &mem_read_queue);　//非独占
 		set_current_state(TASK_INTERRUPTIBLE);
